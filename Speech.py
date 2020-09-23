@@ -1,7 +1,5 @@
 import speech_recognition as sr
 import pyttsx3
-from googletrans import Translator
-#import time
 
 #might need to use class
 def recognize_speech_from_mic_to_text(recognizer, microphone):
@@ -39,15 +37,6 @@ def recognize_speech_from_mic_to_text(recognizer, microphone):
     
     return response
 
-def translate(text,lang):
-    #need to figure out dest language
-    #create instance
-    translator = Translator()
-    #translate to swedish
-    translated = translator.translate(text, dest='sv')
-    print(translated.text)
-    
-    return translated.text
 
 def tts(text):
     #need work with response/response in diff. langauge 
@@ -66,7 +55,8 @@ if __name__ == "__main__":
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
     
-    #use recognize_speech_from_mic_to_text
+#    use recognize_speech_from_mic_to_text
     text =recognize_speech_from_mic_to_text(recognizer, microphone)
-    tts(text["transcription"])
     
+    tts(text["transcription"])
+ 
