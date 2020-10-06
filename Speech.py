@@ -1,62 +1,95 @@
+import os
+from datetime import date
+from datetime import datetime
+import random
+
 import speech_recognition as sr
 import pyttsx3
 
-#might need to use class
-def recognize_speech_from_mic_to_text(recognizer, microphone):
-    #check if correct instances
-    if not isinstance(recognizer, sr.Recognizer):
-        raise TypeError("`recognizer` must be `Recognizer` instance")
+from playsound import playsound
+from gtts import gTTS as tts
 
-    if not isinstance(microphone, sr.Microphone):
-        raise TypeError("`microphone` must be `Microphone` instance")
-        
-    #recognize_speech
-    with microphone as source:
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
 
-    #create response
-    response = {
-    "success": True,
-    "error": None,
-    "transcription": None
-    }
-    
-    #add values to response
+def capture():
+    """Capture audio"""
+
+    rec = sr.Recognizer()
+
+    with sr.Microphone() as source:
+        print('I\'M LISTENING...')
+        audio = rec.listen(source, phrase_time_limit=5)
+
     try:
-        response["transcription"] = recognizer.recognize_google(audio, language="sv-SE")
-    except sr.RequestError:
-        # API was unreachable or unresponsive
-        response["success"] = False
-        response["error"] = "API unavailable"
-    except sr.UnknownValueError:
-        # speech was unintelligible
-        response["error"] = "Unable to recognize speech"
+        text = rec.recognize_google(audio, language="sv-SE")
+        return text
+    except rec.RequestError:
+        engine = pyttsx3.init()
+        engine.say('API unavailable')
+        #wait for it to say everything
+        engine.runAndWait()  
+        return 0
+    
+    except:
+        speak('Ursäkta jag fattar inte, säg hjälp för att få funktioner')
+        return 0
+    
+def process_text(name, input):
+    """Process what is said"""
+
+    speak(name + ', du säger: "' + input + '".')
+    return
+
+def speak(text):
+    """Say something"""
+
+    # Write output to console
+    print(text)
+
+    # Save audio file
+    speech = tts(text=text, lang='sv')
+    speech_file = 'input.mp3'
+    speech.save(speech_file)
+
+    # Play audio file
+    playsound("input.mp3")
+    os.remove(speech_file)
+    
+
+if __name__ == "__main__":
+
+    
+    # First get name
+    speak('Hej,Vad heter du?')
+    name = capture()
+    speak('Hej, ' + name + '.')
+
+    # Then just keep listening & responding
+    greeting_phrases=['Hur mår du?','Mår du bra idag']
+    choosen_phrase = random.choice(greeting_phrases)
+    speak(choosen_phrase+' '+name)
+    #captured_text = capture().lower()
+    
+    while 1:
         
-    print(response["transcription"])
-    
-    return response
+        speak('vad vill du?')
+        captured_text = capture().lower()
+            
+        if 'tid' in str(captured_text):
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            speak(current_time)
 
+        if 'datum' in str(captured_text):
+            today = date.today()
+            d1 = today.strftime("%d/%m/%Y")
+            speak(d1)
+            
+        if 'hjälp' in str(captured_text):
+            speak('tillgängliga funktioner: hälsning, tid, datum, hejdå och hjälp')
 
-def tts(text):
-    #need work with response/response in diff. langauge 
-    #text_to_speech
-    engine = pyttsx3.init()
-    
-    engine.say(text)
-    
-    #wait for it to say everything
-    engine.runAndWait()  
-        
-    return 0
+        if 'hejdå' in str(captured_text):
+            speak('Okej, hejdå ' + name + ', ha en trevlig dag.')
+            break
 
-if __name__ == "__main__":  
-    #create instances
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-    
-#    use recognize_speech_from_mic_to_text
-    text =recognize_speech_from_mic_to_text(recognizer, microphone)
-    
-    tts(text["transcription"])
- 
+        # Process captured text
+        process_text(name, captured_text)
