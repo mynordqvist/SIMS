@@ -1,95 +1,90 @@
 import os
+import random
+import speech_recognition as sr
+import pygame
 from datetime import date
 from datetime import datetime
-import random
-
-import speech_recognition as sr
-import pyttsx3
-
-from playsound import playsound
 from gtts import gTTS as tts
 
+#Capture audio, input arg will be used to repeat question
+def Capture(str):
 
-def capture():
-    """Capture audio"""
+    text_found = False
 
     rec = sr.Recognizer()
-
-    with sr.Microphone() as source:
-        print('I\'M LISTENING...')
-        audio = rec.listen(source, phrase_time_limit=5)
-
-    try:
-        text = rec.recognize_google(audio, language="sv-SE")
-        return text
-    except rec.RequestError:
-        engine = pyttsx3.init()
-        engine.say('API unavailable')
-        #wait for it to say everything
-        engine.runAndWait()  
-        return 0
     
-    except:
-        speak('Ursäkta jag fattar inte, säg hjälp för att få funktioner')
-        return 0
+    while text_found == False:
+        
+        #Listen from microphone in 3 sec
+        with sr.Microphone() as source:
+            audio = rec.listen(source, phrase_time_limit=3) 
+        
+        #Recognize response from user 
+        try:
+            text = rec.recognize_google(audio, language="sv-SE")
+            text_found = True
+            return text
+        
+        #If no response, repeat question
+        except:
+            Speak(str)
+
+#Speak to the user
+def Speak(text):
     
-def process_text(name, input):
-    """Process what is said"""
+    print(text) #Write output to console
 
-    speak(name + ', du säger: "' + input + '".')
-    return
-
-def speak(text):
-    """Say something"""
-
-    # Write output to console
-    print(text)
-
-    # Save audio file
-    speech = tts(text=text, lang='sv')
-    speech_file = 'input.mp3'
+    #Save audio file
+    speech = tts(text=text, lang="sv")
+    speech_file = "input.mp3"
     speech.save(speech_file)
 
-    # Play audio file
-    playsound("input.mp3")
+    #Play audio file
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load("input.mp3")
+    pygame.mixer.music.play()
+    
+    #Wait for file to finish playing
+    while pygame.mixer.music.get_busy():
+         pygame.time.Clock().tick(1)
+    
+    #Remove file     
     os.remove(speech_file)
+
+#Conversation with the user
+def Conversation():
     
+    #First get name
+    Speak('Hej,Vad heter du?')
+    name = Capture('Ursäkta jag hörde inte, kan du säga ditt namn igen?')
+    Speak('Hej, ' + str(name) + '.')
 
-if __name__ == "__main__":
-
-    
-    # First get name
-    speak('Hej,Vad heter du?')
-    name = capture()
-    speak('Hej, ' + name + '.')
-
-    # Then just keep listening & responding
-    greeting_phrases=['Hur mår du?','Mår du bra idag']
+    #Ask how the user is feeling
+    greeting_phrases=['Hur mår du?','Mår du bra idag?']
     choosen_phrase = random.choice(greeting_phrases)
-    speak(choosen_phrase+' '+name)
-    #captured_text = capture().lower()
+    Speak(choosen_phrase+' '+name)
+    captured_text = Capture('Ursäkta jag hörde inte, mår du bra idag?').lower()
     
+    #Then just keep listening & responding
     while 1:
         
-        speak('vad vill du?')
-        captured_text = capture().lower()
+        Speak('Vad kan jag hjälpa dig med?')
+        captured_text = Capture('Ursäkta jag hörde inte, vad kan jag hjälpa dig med?').lower()
             
-        if 'tid' in str(captured_text):
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            speak(current_time)
 
         if 'datum' in str(captured_text):
             today = date.today()
             d1 = today.strftime("%d/%m/%Y")
-            speak(d1)
+            Speak(d1)
             
-        if 'hjälp' in str(captured_text):
-            speak('tillgängliga funktioner: hälsning, tid, datum, hejdå och hjälp')
+        elif 'hjälp' in str(captured_text):
+            Speak('Tillgängliga funktioner: hälsning, datum, hejdå och hjälp')
 
-        if 'hejdå' in str(captured_text):
-            speak('Okej, hejdå ' + name + ', ha en trevlig dag.')
-            break
-
-        # Process captured text
-        process_text(name, captured_text)
+        elif 'hejdå' in str(captured_text):
+            Speak('Okej, hejdå ' + name + ', ha en trevlig dag.')
+            #break
+            return
+        
+        else:
+            Speak('Säg hjälp för att få tillgängliga funktioner')
