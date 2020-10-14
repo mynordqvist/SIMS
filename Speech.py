@@ -5,6 +5,7 @@ import pygame
 from datetime import date
 from datetime import datetime
 from gtts import gTTS as tts
+from Environment import *
 
 #Capture audio, input arg will be used to repeat question
 def Capture(str):
@@ -79,12 +80,21 @@ def Conversation():
             Speak(d1)
             
         elif 'hjälp' in str(captured_text):
-            Speak('Tillgängliga funktioner: hälsning, datum, hejdå och hjälp')
+            Speak('Tillgängliga funktioner: hälsning, datum, temperatur, luftfuktighet, hejdå och hjälp')
 
         elif 'hejdå' in str(captured_text):
             Speak('Okej, hejdå ' + name + ', ha en trevlig dag.')
-            #break
             return
+        
+        elif 'temperatur' in str(captured_text):
+            temp = Temperature()
+            temp = str(temp)
+            Speak('Temperaturen är ' + temp + ' grader celsius')
+        
+        elif 'luftfuktighet' in str(captured_text):
+            humidity = Humidity()
+            humidity = str(humidity)
+            Speak('Luftfuktigheten är ' + humidity + ' %')
         
         else:
             Speak('Säg hjälp för att få tillgängliga funktioner')
