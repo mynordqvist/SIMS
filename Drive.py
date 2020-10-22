@@ -19,19 +19,32 @@ def Stop():
     kit.motor3.throttle = 0
     kit.motor4.throttle = 0
     time.sleep(2)
+
+#Reverse
+def Reverse():
+    kit = MotorKit()
+    kit.motor1.throttle = -0.8
+    kit.motor2.throttle = -0.8
+    kit.motor3.throttle = -0.8
+    kit.motor4.throttle = -0.8
+    time.sleep(0.5)
     
 #Turn right    
-def Turn():
+def TurnRight():
     kit = MotorKit()
     kit.motor1.throttle = 0.8
     kit.motor3.throttle = 0.8
     kit.motor2.throttle = -0.8
     kit.motor4.throttle = -0.8
     time.sleep(0.5)
-    kit.motor1.throttle = 0
-    kit.motor2.throttle = 0
-    kit.motor3.throttle = 0
-    kit.motor4.throttle = 0
+
+def TurnLeft():
+    kit = MotorKit()
+    kit.motor1.throttle = -0.8
+    kit.motor3.throttle = -0.8
+    kit.motor2.throttle = 0.8
+    kit.motor4.throttle = 0.8
+    time.sleep(0.5)
     
 def Sensor_init():
     GPIO.setwarnings(False) #Disable warnings
