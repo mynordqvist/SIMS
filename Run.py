@@ -5,6 +5,8 @@ from Accelerometer import *
 import threading
 import globals
 
+import qwiic_ccs811
+
 
 #Drive around and avoid crashes, find faces and start conversations 
 def Run():
@@ -15,8 +17,10 @@ def Run():
     #Threds for face detection and crash detection
     faceThread = threading.Thread(target=FaceDetect)
     crashThred = threading.Thread(target=Crash)
+    heyThread = threading.Thread(target=Hey)
     faceThread.start()
     crashThred.start()
+    heyThread.start()
 
     while True:
         
@@ -46,9 +50,17 @@ def Run():
 
         #If a face is found then stop and start a conversation
         if globals.face_found == True:
+            globals.hey_found = True
             print('hej')
             Stop()
             Conversation()
             globals.face_found = False #Reset global variable for face is found
+            globals.hey_found = False
+            
+        
+        if globals.hey_found == True:
+            Stop()
+            Conversation()
+            globals.hey_found = False
         
     GPIO.cleanup() # Clean up the ports
