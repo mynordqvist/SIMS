@@ -160,9 +160,6 @@ def Conversation():
     
     #Then just keep listening & responding
     while 1:
-        if globals.count == 2:
-            Goodbye(Current_hour())
-            return
         Speak('Vad kan jag hjälpa dig med?')
         captured_text = Capture('Ursäkta jag hörde inte, vad kan jag hjälpa dig med?').lower()
             
