@@ -19,7 +19,6 @@ def Capture(str):
     rec = sr.Recognizer()
     
     while text_found == False:
-        
         #Listen from microphone in 3 sec
         with sr.Microphone() as source:
             audio = rec.listen(source, phrase_time_limit=3) 
@@ -33,6 +32,11 @@ def Capture(str):
         #If no response, repeat question
         except:
             Speak(str)
+            globals.count = globals.count + 1
+            if globals.count == 4:
+                globals.count = 0
+                return 'hejdå'
+            
 
 #Speak to the user
 def Speak(text):
@@ -57,7 +61,7 @@ def Speak(text):
     #Remove file     
     os.remove(speech_file)
     
-def Current_stockholm_time():
+def Current_hour():
     #set timezone
     timezone = 'Europe/Stockholm'
     local_tz = pytz.timezone(timezone)
@@ -69,6 +73,18 @@ def Current_stockholm_time():
     now_local = local_tz.normalize(local_dt)
     
     return now_local.hour
+
+def Current_time():
+    #set timezone
+    timezone = 'Europe/Stockholm'
+    local_tz = pytz.timezone(timezone)
+    
+    #get current time
+    now = datetime.now(local_tz)
+    
+    time = now.strftime("%H %M")
+    
+    return time
 
 def Greeting(currtime):
     #Greeting alternative
@@ -119,10 +135,10 @@ def Goodbye(currtime):
 
 #Conversation with the user
 def Conversation():
-    
-    exitNow = Greeting(Current_stockholm_time())
+        
+    exitNow = Greeting(Current_hour())
     if 'exit' in str(exitNow):
-        Goodbye(Current_stockholm_time())
+        Goodbye(Current_hour())
         return
         
     
@@ -130,9 +146,10 @@ def Conversation():
     greeting_phrases=['Hur mår du?','Mår du bra idag?']
     choosen_phrase = random.choice(greeting_phrases)
     Speak(choosen_phrase)
-    captured_text = Capture('Ursäkta jag hörde inte, mår du bra idag?').lower()
+    captured_text = Capture('Ursäkta jag hörde inte, mår du bra idag?')
+    captured_text = captured_text.lower()
     if 'hejdå' in str(captured_text): #exit conversation
-        Goodbye(Current_stockholm_time())
+        Goodbye(Current_hour())
         return
     
     if 'bra' in str(captured_text) or 'ja' in str(captured_text) or ' kanon' in str(captured_text) or 'fint' in str(captured_text):
@@ -143,7 +160,9 @@ def Conversation():
     
     #Then just keep listening & responding
     while 1:
-        
+        if globals.count == 2:
+            Goodbye(Current_hour())
+            return
         Speak('Vad kan jag hjälpa dig med?')
         captured_text = Capture('Ursäkta jag hörde inte, vad kan jag hjälpa dig med?').lower()
             
@@ -157,8 +176,13 @@ def Conversation():
             Speak('Det som jag kan hjälpa dig med: datum, temperatur, luftfuktighet, identifera en känd person/sak eller avsluta konvorsationen med att säga hejdå')
 
         elif 'hejdå' in str(captured_text):
-            Goodbye(Current_stockholm_time())
+            Goodbye(Current_hour())
             return
+        
+        elif 'klockan' in str(captured_text):
+            time = Current_time()
+            time = str(time)
+            Speak('Klockan är ' + time)
         
         elif 'temperatur' in str(captured_text):
             temp = Temperature()
@@ -173,13 +197,10 @@ def Conversation():
         elif 'vem är' in str(captured_text) or 'vad är'in str(captured_text): 
             Speak('Jag söker på Wikipedia') 
             wikipedia.set_lang("sv")
-            try:
-                results = wikipedia.summary(str(captured_text), sentences = 1)
-                Speak("Enligt Wikipedia") 
-                Speak(results)
-            except:
-                Speak("Jag hittade inga täffar på " + results)
-             
+            results = wikipedia.summary(str(captured_text), sentences = 1)
+            Speak("Enligt Wikipedia") 
+            Speak(results)
+           
         
         else:
             Speak('Säg hjälp för att få reda på vad jag kan hjälpa dig med')
@@ -198,8 +219,9 @@ def Hey():
             
             try:
                 text = rec.recognize_google(audio, language="sv-SE")
+                text = text.lower()
                 print ('text: ' + text)
-                if 'hej Doris' in str(text):
+                if 'hej doris' in str(text) or 'hej louise' in str(text) or 'hej boris' in str(text):
                     globals.hey_found = True
             except:
                 time.sleep(0.01)
