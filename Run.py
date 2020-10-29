@@ -2,10 +2,9 @@ from Speech import *
 from Drive import *
 from FaceDetection import *
 from Accelerometer import *
+from Environment import *
 import threading
 import globals
-
-import qwiic_ccs811
 
 
 #Drive around and avoid crashes, find faces and start conversations 
@@ -14,13 +13,15 @@ def Run():
     #Initialization of GPIO pins for sensors
     Sensor_init()
     
-    #Threds for face detection and crash detection
+    #Threds for face detection, crash detection, "hej doris" detection and co2 measure
     faceThread = threading.Thread(target=FaceDetect)
     crashThred = threading.Thread(target=Crash)
     heyThread = threading.Thread(target=Hey)
+    co2Thred = threading.Thread(target=Co2Variable)
     faceThread.start()
     crashThred.start()
     heyThread.start()
+    co2Thred.start()
 
     while True:
         
@@ -57,7 +58,7 @@ def Run():
             globals.face_found = False #Reset global variable for face is found
             globals.hey_found = False
             
-        
+        #If "Hej Doris" is detected, stop and start a conversation
         if globals.hey_found == True:
             Stop()
             Conversation()
