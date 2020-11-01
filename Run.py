@@ -8,60 +8,50 @@ import globals
 
 
 #Drive around and avoid crashes, find faces and start conversations 
-def Run():
+def Run():  
+    
+    #Threds for face detection, crash detection, "hej doris" detection,
+    #co2 measure, sensor detection and time of driving forward
+    faceThread = threading.Thread(target=FaceDetect)
+    crashThread = threading.Thread(target=Crash)
+    heyThread = threading.Thread(target=Hey)
+    co2Thread = threading.Thread(target=Co2Variable)
+    forwardThread = threading.Thread(target=ForwardClock)
+    
+    faceThread.start()
+    crashThread.start()
+    heyThread.start()
+    co2Thread.start()
+    forwardThread.start()
     
     #Initialization of GPIO pins for sensors
     Sensor_init()
-    
-    #Threds for face detection, crash detection, "hej doris" detection and co2 measure
-    faceThread = threading.Thread(target=FaceDetect)
-    crashThred = threading.Thread(target=Crash)
-    heyThread = threading.Thread(target=Hey)
-    co2Thred = threading.Thread(target=Co2Variable)
-    faceThread.start()
-    crashThred.start()
-    heyThread.start()
-    co2Thred.start()
 
     while True:
-        
+                      
         i = GPIO.input(23) 
         k = GPIO.input(24)
         j = GPIO.input(25)
         
-        #If any sensor detect an object, stop and reverse then turn random left or right  
-        if (i == 0 or j == 0 or k == 0):
+        #If any sensor detect an object, a crash is detected or driving forward 10 seconds,
+        #Stop and turn left or right 
+        if (i == 0 or j == 0 or k == 0) or globals.crash == True or globals.time >= 10:
             Stop()
-            Reverse()
-            random_functions=[TurnLeft, TurnRight]
-            random.choice(random_functions)()
-            
-        #Otherwise continue driving 
-        else:
-            Start()
-        
-        #If a crash is detected, stop and reverse then turn random left or right 
-        if globals.crash == True:
-            print("Crash")
-            Stop()
-            Reverse()
+            random_reverse=[Reverse, Stop]
+            random.choice(random_reverse)()
             random_functions=[TurnLeft, TurnRight]
             random.choice(random_functions)()
             globals.crash = False #Reset global variable for crash is detected
-
-        #If a face is found then stop and start a conversation
-        if globals.face_found == True:
-            globals.hey_found = True
-            print('hej')
-            Stop()
-            Conversation()
-            globals.face_found = False #Reset global variable for face is found
-            globals.hey_found = False
+            globals.time = 0 #Reset global variable for time
             
-        #If "Hej Doris" is detected, stop and start a conversation
+        else:
+            Start()
+
+        #If a face is found or "Hej Doris" is detected, stop and start a conversation
         if globals.hey_found == True:
             Stop()
             Conversation()
-            globals.hey_found = False
+            globals.hey_found = False #Reset global variable 
+            globals.time = 0 #Reset global variable
         
     GPIO.cleanup() # Clean up the ports
